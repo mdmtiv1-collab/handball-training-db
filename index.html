@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handball Pro Training DB | 150 Treinos de Handebol</title>
+  <meta name="description" content="Banco de dados interativo com 150 exercícios e treinos de handebol categorizados para treinadores e atletas. Planeje sessões completas.">
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Add custom font styles for the planner button badge logic -->
+  <style>
+    .active-planner {
+      background: var(--primary) !important;
+      color: white !important;
+      border-color: var(--primary) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <h1>HandballPro DB</h1>
+        <span>150 Exercícios & Planejador</span>
+      </div>
+    </div>
+
+    <div class="app-stats">
+      <div class="stat-pill">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="color: var(--primary);"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        <span>Banco de Dados:</span> <strong id="totalDrillsCount">0</strong> treinos
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar Filters -->
+    <aside class="app-sidebar">
+      <div class="filter-section">
+        <h3>Pesquisa</h3>
+        <div class="search-wrapper">
+          <input type="text" id="searchInput" class="search-input" placeholder="Buscar por palavra-chave...">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <h3>Categorias</h3>
+        <div class="category-list" id="categoryFilters">
+          <!-- Dynamically populated categories -->
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <h3>Dificuldade</h3>
+        <div class="difficulty-list" id="difficultyFilters">
+          <!-- Dynamically populated difficulties -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Grid Content Area -->
+    <main class="main-content">
+      <div class="content-header">
+        <div class="section-title">
+          <h2 id="activeCategoryName">Todos os Treinos</h2>
+        </div>
+        <div class="sorting-wrapper">
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Ordenar por:</span>
+          <select id="sortSelect" class="sort-select">
+            <option value="id">Nº Sequencial</option>
+            <option value="title">Título (A-Z)</option>
+            <option value="difficulty">Dificuldade</option>
+            <option value="players">Nº de Jogadores</option>
+          </select>
+          <span style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 1rem;">Mostrando <strong id="drillsCount" style="color: var(--primary);">0</strong> exercícios</span>
+        </div>
+      </div>
+
+      <!-- Card Grid -->
+      <section class="drills-grid" id="drillsGrid">
+        <!-- Rendered drill cards -->
+      </section>
+    </main>
+
+  </div>
+
+  <!-- Floating Planner Action Trigger -->
+  <button class="planner-trigger" id="openPlannerBtn">
+    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+    Sessão de Treino
+    <span class="planner-badge" id="plannerBadge">0</span>
+  </button>
+
+  <!-- Planner Drawer (Right-side panel) -->
+  <div class="planner-drawer" id="plannerDrawer">
+    <div class="planner-header">
+      <h3>
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        Montador de Treino
+      </h3>
+      <button class="close-drawer" id="closePlannerBtn">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="planner-content">
+      <!-- Empty State -->
+      <div class="empty-planner-state" id="emptyPlannerState">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p>Seu treino está vazio.<br>Adicione exercícios clicando no botão <strong>+</strong> nos cards correspondentes.</p>
+      </div>
+      
+      <!-- Planner list populated dynamically -->
+      <ul class="planner-list" id="plannerList" style="display: none;">
+        <!-- Items inserted here -->
+      </ul>
+    </div>
+    
+    <div class="planner-footer">
+      <div class="planner-summary">
+        <span>Tempo Estimado:</span>
+        <strong id="totalTime" style="color: var(--primary);">0 min</strong>
+      </div>
+      <div class="planner-summary">
+        <span>Atletas Mínimos:</span>
+        <strong id="minPlayers" style="color: var(--accent);">0</strong>
+      </div>
+      <button class="btn btn-primary" id="printBtn" disabled style="width: 100%; margin-top: 0.5rem;">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+        Gerar Ficha de Treino (PDF)
+      </button>
+      <button class="btn btn-outline" id="clearPlannerBtn" disabled style="width: 100%;">
+        Limpar Sessão
+      </button>
+    </div>
+  </div>
+
+  <!-- Detailed View Modal -->
+  <div class="modal-overlay" id="drillModal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-body">
+        
+        <div class="modal-drill-title-wrapper">
+          <span id="modalCategory" class="drill-category">CATEGORIA</span>
+          <h2 id="modalTitle" class="modal-drill-title">Nome do Exercício</h2>
+          <div class="modal-meta-pills" style="margin-top: 0.75rem;">
+            <span id="modalDifficulty" class="drill-difficulty">Nível</span>
+            <span class="meta-pill">⏱ <span id="modalDuration">10 min</span></span>
+            <span class="meta-pill">👥 <span id="modalPlayers">2+ jog</span></span>
+          </div>
+        </div>
+
+        <!-- Youtube video player container -->
+        <div class="video-container" id="modalVideoContainer">
+          <!-- iframe inserted here dynamically -->
+        </div>
+
+        <div class="modal-info-grid">
+          <div class="modal-details">
+            <div>
+              <h4 class="modal-section-title">Objetivo Principal</h4>
+              <p id="modalObjective" style="line-height: 1.6; color: var(--text-secondary);"></p>
+            </div>
+            <div>
+              <h4 class="modal-section-title">Descrição e Execução</h4>
+              <p id="modalDescription" style="line-height: 1.6; color: var(--text-secondary); white-space: pre-line;"></p>
+            </div>
+          </div>
+
+          <div class="modal-sidebar-box">
+            <div>
+              <h4 class="modal-section-title" style="margin-bottom: 0.5rem;">Materiais</h4>
+              <ul class="materials-list" id="modalMaterials">
+                <!-- Materials list items -->
+              </ul>
+            </div>
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+              <h4 class="modal-section-title" style="margin-bottom: 0.5rem;">Vídeo e Demonstração</h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.4;">
+                Não encontrou o vídeo ideal acima? Pesquise diretamente no YouTube com termos curados:
+              </p>
+              <a href="#" target="_blank" class="btn btn-primary" id="modalYoutubeBtn" style="font-size: 0.8rem; width: 100%;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="margin-right: 0.25rem;"><path d="M23.498 6.163c-.272-1.015-1.07-1.812-2.084-2.084C19.578 3.53 12 3.53 12 3.53s-7.578 0-9.414.549c-1.014.272-1.812 1.07-2.084 2.084C0 7.998 0 11.838 0 11.838s0 3.84.502 5.676c.272 1.014 1.07 1.812 2.084 2.084 1.836.549 9.414.549 9.414.549s7.578 0 9.414-.549c1.014-.272 1.812-1.07 2.084-2.084.502-1.836.502-5.676.502-5.676s0-3.84-.502-5.676zM9.545 15.568V8.106l6.236 3.731-6.236 3.731z"/></svg>
+                Buscar Vídeo no YouTube
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="js/drills.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
