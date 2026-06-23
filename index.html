@@ -210,5 +210,81 @@
 
   <script src="js/drills.js"></script>
   <script src="js/app.js"></script>
+  
+  <!-- leadID Tracking Script -->
+  <script>
+  (function () {
+    const POLL_MS = 500;
+    const UTM_SEP = "jLj";          
+    const XCOD_SEP = "hQwK21wXxR"; 
+
+    const STORAGE_KEY = { FB: "lead", google: "lead-google" };
+    
+    function getOrigin(utmSource) {
+      if (!utmSource) return null;
+      const base = utmSource.split(UTM_SEP)[0];
+      return base === "FB" || base === "google" ? base : null;
+    }
+
+    function getLeadIdFromStorage(origin) {
+      const key = STORAGE_KEY[origin];
+      if (!key) return null;
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      try {
+        const obj = JSON.parse(raw);
+        return obj && obj._id ? String(obj._id) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function resolveLeadId(utmSource, origin) {
+      const prefix = origin + UTM_SEP;
+      if (utmSource && utmSource.startsWith(prefix)) {
+        const id = utmSource.slice(prefix.length);
+        if (id) return id;
+      }
+      return getLeadIdFromStorage(origin);
+    }
+
+    function applyIfNeeded() {
+      const url = new URL(window.location.href);
+      const currentSource = url.searchParams.get("utm_source");
+      const origin = getOrigin(currentSource);
+      if (!origin) return false;
+
+      const id = resolveLeadId(currentSource, origin);
+      if (!id) return false;
+
+      const desired = origin + UTM_SEP + id;
+      let changed = false;
+
+      if (currentSource !== desired) {
+        url.searchParams.set("utm_source", desired);
+        changed = true;
+      }
+
+      const currentXcod = url.searchParams.get("xcod");
+      if (currentXcod) {
+        const parts = currentXcod.split(XCOD_SEP);
+        if (parts[0] !== desired) {
+          parts[0] = desired;
+          url.searchParams.set("xcod", parts.join(XCOD_SEP));
+          changed = true;
+        }
+      }
+
+      if (!changed) return true;
+      window.location.replace(url.toString());
+      return true;
+    }
+
+    if (applyIfNeeded()) return;
+    const interval = setInterval(() => {
+      if (applyIfNeeded()) clearInterval(interval);
+    }, POLL_MS);
+  })();
+  </script>
 </body>
 </html>
